@@ -86,7 +86,7 @@ topicterms
 scores <- predict(model, newdata = x)
 ```
 
-Make a specific topic called the background
+**Make a specific topic called the background**
 
 ```
 # If you set background to TRUE
@@ -97,6 +97,86 @@ model  <- BTM(x, k = 5, beta = 0.01, background = TRUE, iter = 1000, trace = 100
 topicterms <- terms(model, top_n = 5)
 topicterms
 ```
+
+### Provide your own set of biterms
+
+An interesting use case of this package is to 
+
+- cluster based on parts of speech tags like nouns and adjectives which can be found in the text in the neighbourhood of one another
+- cluster dependency relationships provided by NLP tools like udpipe (https://CRAN.R-project.org/package=udpipe)
+
+This can be done by providing your own set of biterms to cluster upon. 
+
+**Example clustering cooccurrences of nouns/adjectives**
+
+```
+library(data.table)
+library(udpipe)
+## Annotate text with parts of speech tags
+data("brussels_reviews", package = "udpipe")
+anno <- subset(brussels_reviews, language %in% "nl")
+anno <- data.frame(doc_id = anno$id, text = anno$feedback, stringsAsFactors = FALSE)
+anno <- udpipe(anno, "dutch", trace = 10)
+
+## Get cooccurrences of nouns / adjectives and proper nouns
+biterms <- as.data.table(anno)
+biterms <- biterms[, cooccurrence(x = lemma, 
+                                  relevant = upos %in% c("NOUN", "PROPN", "ADJ"),
+                                  skipgram = 2), 
+                   by = list(doc_id)]
+                   
+## Build the model
+set.seed(123456)
+x <- subset(anno, upos %in% c("NOUN", "PROPN", "ADJ"))
+x <- x[, c("doc_id", "lemma")]
+model <- BTM(x, k = 5, beta = 0.01, iter = 2000, background = TRUE, 
+             biterms = biterms, trace = 100)
+topicterms <- terms(model, top_n = 5)
+topicterms
+```
+
+**Example clustering dependency relationships**
+
+```
+library(udpipe)
+library(tm)
+library(data.table)
+data("brussels_reviews", package = "udpipe")
+exclude <- stopwords("nl")
+
+## Do annotation on Dutch text
+anno <- subset(brussels_reviews, language %in% "nl")
+anno <- data.frame(doc_id = anno$id, text = anno$feedback, stringsAsFactors = FALSE)
+anno <- udpipe(anno, "dutch", trace = 10)
+anno <- setDT(anno)
+anno <- merge(anno, anno, 
+              by.x = c("doc_id", "paragraph_id", "sentence_id", "head_token_id"), 
+              by.y = c("doc_id", "paragraph_id", "sentence_id", "token_id"), 
+              all.x = TRUE, all.y = FALSE, suffixes = c("", "_parent"), sort = FALSE)
+
+## Specify a set of relationships you are interested in (e.g. objects of a verb)
+anno$relevant <- anno$dep_rel %in% c("obj") & !is.na(anno$lemma_parent)
+biterms <- subset(anno, relevant == TRUE)
+biterms <- data.frame(doc_id = biterms$doc_id, 
+                      term1 = biterms$lemma, 
+                      term2 = biterms$lemma_parent,
+                      cooc = 1, 
+                      stringsAsFactors = FALSE)
+biterms <- subset(biterms, !term1 %in% exclude & !term2 %in% exclude)
+
+## Put in x only terms whch were used in the biterms object such that frequency stats of terms can be computed in BTM
+anno <- anno[, keep := relevant | (token_id %in% head_token_id[relevant == TRUE]), by = list(doc_id, paragraph_id, sentence_id)]
+x <- subset(anno, keep == TRUE, select = c("doc_id", "lemma"))
+x <- subset(x, !lemma %in% exclude)
+
+## Build the topic model
+model <- BTM(data = x, 
+             biterms = biterms, 
+             k = 6, iter = 2000, background = FALSE, trace = 100)
+topicterms <- terms(model, top_n = 5)
+topicterms
+```
+
 
 ## Support in text mining
 
