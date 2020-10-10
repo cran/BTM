@@ -19,7 +19,7 @@
 #' }
 #' @param k integer with the number of topics to identify
 #' @param alpha numeric, indicating the symmetric dirichlet prior probability of a topic P(z). Defaults to 50/k.
-#' @param beta numeric, indicating the symmetric dirichlet prior probability of a word given the topic P(w|z). Defaults to 0.1.
+#' @param beta numeric, indicating the symmetric dirichlet prior probability of a word given the topic P(w|z). Defaults to 0.01.
 #' @param iter integer with the number of iterations of Gibbs sampling
 #' @param window integer with the window size for biterm extraction. Defaults to 15.
 #' @param background logical if set to \code{TRUE}, the first topic is set to a background topic that 
@@ -63,6 +63,7 @@
 #' @export
 #' @seealso \code{\link{predict.BTM}}, \code{\link{terms.BTM}}, \code{\link{logLik.BTM}}
 #' @examples
+#' \dontshow{if(require(udpipe) & require(data.table))\{}
 #' library(udpipe)
 #' data("brussels_reviews_anno", package = "udpipe")
 #' x <- subset(brussels_reviews_anno, language == "nl")
@@ -106,7 +107,7 @@
 #' bitermset$n
 #' sum(biterms$cooc)
 #' 
-#' 
+#' \dontshow{\} # End of main if statement running only if the required packages are installed}
 #' \dontrun{
 #' ##
 #' ## Visualisation either using the textplot or the LDAvis package
@@ -244,6 +245,7 @@ print.BTM <- function(x, ...){
 #' one for each topic. 
 #' @export
 #' @examples 
+#' \dontshow{if(require(udpipe))\{}
 #' library(udpipe)
 #' data("brussels_reviews_anno", package = "udpipe")
 #' x <- subset(brussels_reviews_anno, language == "nl")
@@ -254,6 +256,7 @@ print.BTM <- function(x, ...){
 #' scores <- predict(model, newdata = x, type = "sub_w")
 #' scores <- predict(model, newdata = x, type = "mix")
 #' head(scores)
+#' \dontshow{\} # End of main if statement running only if the required packages are installed}
 predict.BTM <- function(object, newdata, type = c("sum_b", "sub_w", "mix"), ...){
   type <- match.arg(type)
   stopifnot(inherits(newdata, "data.frame"))
@@ -283,7 +286,7 @@ predict.BTM <- function(object, newdata, type = c("sum_b", "sub_w", "mix"), ...)
 #' @param top_n integer indicating to return the top n tokens for each topic only. Only used in case type = 'tokens'.
 #' @param ... not used
 #' @return 
-#' Depending on if type is set to 'tokens' or 'biterms' the following is returned:
+#' Depending if type is set to 'tokens' or 'biterms' the following is returned:
 #' \itemize{
 #' \item{If \code{type='tokens'}: }{Get the probability of the token given the topic P(w|z). 
 #' It returns a list of data.frames (one for each topic) where each data.frame contains columns token and probability ordered from high to low.
@@ -299,6 +302,7 @@ predict.BTM <- function(object, newdata, type = c("sum_b", "sub_w", "mix"), ...)
 #' @export
 #' @seealso \code{\link{BTM}}, \code{\link{predict.BTM}}, \code{\link{logLik.BTM}}
 #' @examples 
+#' \dontshow{if(require(udpipe))\{}
 #' library(udpipe)
 #' data("brussels_reviews_anno", package = "udpipe")
 #' x <- subset(brussels_reviews_anno, language == "nl")
@@ -310,6 +314,7 @@ predict.BTM <- function(object, newdata, type = c("sum_b", "sub_w", "mix"), ...)
 #' terms(model, threshold = 0.01, top_n = +Inf)
 #' bi <- terms(model, type = "biterms")
 #' str(bi)
+#' \dontshow{\} # End of main if statement running only if the required packages are installed}
 terms.BTM <- function(x, type = c("tokens", "biterms"), threshold = 0, top_n = 5, ...){
   type <- match.arg(type)
   if(type %in% "biterms"){
@@ -335,6 +340,95 @@ terms.BTM <- function(x, type = c("tokens", "biterms"), threshold = 0, top_n = 5
 }
 
 
+#' @title Get the set of Biterms from a tokenised data frame
+#' @description
+#' This extracts words occurring in the neighbourhood of one another, within a certain window range.
+#' The default setting provides the biterms used when fitting \code{\link{BTM}} with the default window parameter.
+#' @param x a tokenised data frame containing one row per token with 2 columns 
+#' \itemize{
+#' \item the first column is a context identifier (e.g. a tweet id, a document id, a sentence id, an identifier of a survey answer, an identifier of a part of a text)
+#' \item the second column is a column called of type character containing the sequence of words occurring within the context identifier 
+#' }
+#' @param type a character string, either 'tokens' or 'biterms'. Defaults to 'tokens'.
+#' @param window integer with the window size for biterm extraction. Defaults to 15.
+#' @param ... not used
+#' @return 
+#' Depending if type is set to 'tokens' or 'biterms' the following is returned:
+#' \itemize{
+#' \item{If \code{type='tokens'}: }{a list containing 2 elements: 
+#' \itemize{
+#' \item \code{n} which indicates the number of tokens
+#' \item \code{tokens} which is a data.frame with columns id, token and freq, 
+#' indicating for all tokens found in the data the frequency of occurrence
+#' }
+#' }
+#' \item{If \code{type='biterms'}: }{a list containing 2 elements: 
+#' \itemize{
+#' \item \code{n} which indicates the number of biterms used to train the model
+#' \item \code{biterms} which is a data.frame with columns term1 and term2, 
+#' indicating all biterms found in the data. The same biterm combination can occur several times.
+#' }
+#' Note that a biterm is unordered, in the output of \code{type='biterms'} term1 is always smaller than or equal to term2.}
+#' }
+#' @export
+#' @seealso \code{\link{BTM}}, \code{\link{predict.BTM}}, \code{\link{logLik.BTM}}
+#' @examples 
+#' \dontshow{if(require(udpipe))\{}
+#' library(udpipe)
+#' data("brussels_reviews_anno", package = "udpipe")
+#' x <- subset(brussels_reviews_anno, language == "nl")
+#' x <- subset(x, xpos %in% c("NN", "NNP", "NNS"))
+#' x <- x[, c("doc_id", "lemma")]
+#' biterms <- terms(x, window = 15, type = "biterms")
+#' str(biterms)
+#' tokens <- terms(x, type = "tokens")
+#' str(tokens)
+#' \dontshow{\} # End of main if statement running only if the required packages are installed}
+terms.data.frame <- function(x, type = c("tokens", "biterms"), window = 15, ...){
+  type <- match.arg(type)
+  stopifnot(window >= 1)
+  window <- as.integer(window)
+  data <- x
+  stopifnot(inherits(data, "data.frame"))
+  if(ncol(data) == 2){
+    data <- data.frame(doc_id = data[[1]], token = data[[2]], stringsAsFactors = FALSE)
+  }else{
+    if(!all(c("doc_id", "token") %in% colnames(data))){
+      stop("please provide in data a data.frame with 2 columns as indicated in the help of BTM")
+    }  
+  }
+  data <- data[!is.na(data$doc_id) & !is.na(data$token), ]
+  ## Convert tokens to integer numbers which need to be pasted into a string separated by spaces
+  data$word <- factor(data$token)
+  freq <- table(data$word)
+  freq <- as.data.frame(freq, responseName = "freq", stringsAsFactors = FALSE)
+  vocabulary <- data.frame(id = seq_along(levels(data$word)) - 1L, 
+                           token = levels(data$word), 
+                           freq = freq$freq[match(levels(data$word), freq$Var1)],
+                           stringsAsFactors = FALSE)
+  if(type == "tokens"){
+    return(list(n = nrow(vocabulary), tokens = vocabulary))
+  }
+  data$word <- as.integer(data$word) - 1L
+  
+  voc <- max(data$word) + 1
+  context <- split(data$word, data$doc_id)
+  context <- sapply(context, FUN=function(x) paste(x, collapse = " "))
+  
+  from         <- vocabulary$id + 1L
+  to           <- vocabulary$token 
+  
+  bit <- btm_biterms_text(x = context, W = voc, win = window)
+  bit$biterms$term1 <- to[match(bit$biterms$term1, from)]
+  bit$biterms$term2 <- to[match(bit$biterms$term2, from)]
+  bit$biterms <- data.frame(term1 = bit$biterms$term1, 
+                            term2 = bit$biterms$term2,
+                            stringsAsFactors = FALSE)
+  bit <- bit[c("n", "biterms")]
+  bit
+}
+
+
 #' @title Get the likelihood of biterms in a BTM model
 #' @description Get the likelihood how good biterms are fit by the BTM model
 #' @param object an object of class BTM as returned by \code{\link{BTM}}
@@ -350,6 +444,7 @@ terms.BTM <- function(x, type = c("tokens", "biterms"), threshold = 0, top_n = 5
 #' }
 #' @export
 #' @examples
+#' \dontshow{if(require(udpipe))\{}
 #' library(udpipe)
 #' data("brussels_reviews_anno", package = "udpipe")
 #' x <- subset(brussels_reviews_anno, language == "nl")
@@ -359,6 +454,7 @@ terms.BTM <- function(x, type = c("tokens", "biterms"), threshold = 0, top_n = 5
 #' model  <- BTM(x, k = 5, iter = 5, trace = TRUE, detailed = TRUE)
 #' fit <- logLik(model)
 #' fit$ll
+#' \dontshow{\} # End of main if statement running only if the required packages are installed}
 logLik.BTM <- function(object, data = terms.BTM(object, type = 'biterms')$biterms, ...){
   stopifnot(inherits(data, "data.frame"))
   stopifnot(all(c(data[[1]], data[[2]]) %in% rownames(object$phi)))

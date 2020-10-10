@@ -28,7 +28,7 @@ BTM(
 
 \item{alpha}{numeric, indicating the symmetric dirichlet prior probability of a topic P(z). Defaults to 50/k.}
 
-\item{beta}{numeric, indicating the symmetric dirichlet prior probability of a word given the topic P(w|z). Defaults to 0.1.}
+\item{beta}{numeric, indicating the symmetric dirichlet prior probability of a word given the topic P(w|z). Defaults to 0.01.}
 
 \item{iter}{integer with the number of iterations of Gibbs sampling}
 
@@ -92,6 +92,7 @@ A biterm is an unorder word pair where \code{'B C' = 'C B'}. Thus, the document 
 These biterms are used to create the model.
 }
 \examples{
+\dontshow{if(require(udpipe) & require(data.table))\{}
 library(udpipe)
 data("brussels_reviews_anno", package = "udpipe")
 x <- subset(brussels_reviews_anno, language == "nl")
@@ -135,7 +136,7 @@ head(bitermset$biterms, 100)
 bitermset$n
 sum(biterms$cooc)
 
-
+\dontshow{\} # End of main if statement running only if the required packages are installed}
 \dontrun{
 ##
 ## Visualisation either using the textplot or the LDAvis package

@@ -1,7 +1,7 @@
 Package: BTM
 Type: Package
 Title: Biterm Topic Models for Short Text
-Version: 0.3.1
+Version: 0.3.3
 Maintainer: Jan Wijffels <jwijffels@bnosac.be>
 Authors@R: c(
     person('Jan', 'Wijffels', role = c('aut', 'cre', 'cph'), email = 'jwijffels@bnosac.be', comment = "R wrapper"), 
@@ -21,12 +21,12 @@ LazyData: true
 Imports: Rcpp, utils
 Suggests: udpipe, data.table
 LinkingTo: Rcpp
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 SystemRequirements: C++11
 NeedsCompilation: yes
-Packaged: 2020-05-02 06:15:39 UTC; Jan
+Packaged: 2020-10-10 19:18:59 UTC; Jan
 Author: Jan Wijffels [aut, cre, cph] (R wrapper),
   BNOSAC [cph] (R wrapper),
   Xiaohui Yan [ctb, cph] (BTM C++ library)
 Repository: CRAN
-Date/Publication: 2020-05-02 06:40:02 UTC
+Date/Publication: 2020-10-10 21:40:09 UTC
