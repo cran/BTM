@@ -1,10 +1,10 @@
-ad824ca17e327c8c073b01ac5415e8ef *DESCRIPTION
+459d5250e1aa7f25f7542ddcbb3e0e91 *DESCRIPTION
 55a599a710586760fcfc71270608304c *NAMESPACE
-3283d7330c597194c8a834262a06e856 *NEWS.md
+ab3ef1b619feefaf048ba8e59a4305a1 *NEWS.md
 aef899bff1a6b923a0c598564d6f8086 *R/RcppExports.R
 bf48635aba0d4adf9d93bc66c834c60c *R/btm.R
 110727a44d22dd5fc7f33e61a8018d19 *R/pkg.R
-f77db4223c943e93e46bea2842981ce0 *README.md
+f831e4f9b174eb615881a99070a9f785 *README.md
 52856d25ea53519ffe5b9a25470fcce2 *man/BTM.Rd
 aa7dc75a6131d476d2d5a375e1c98eb4 *man/logLik.BTM.Rd
 bf6fcf95f083bdecdbcd033146a7d6a9 *man/predict.BTM.Rd
@@ -22,3 +22,4 @@ ebf8d06f9b183ff661983a49c3960a7c *src/pvec.h
 c218cd3ea1dd8d71fa35a180e7888038 *src/rcpp_BTM.cpp
 ce6cc6497312d61c4863a84a2f875ad6 *src/sampler.h
 bbb88f29e5e20f38cd0c14f2b4c34d82 *src/str_util.h
+597dd4e572fc6718a12137d25b4f71ba *tools/biterm-topic-model-example.png
